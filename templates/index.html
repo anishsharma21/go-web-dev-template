@@ -1,0 +1,50 @@
+<!-- Base HTML template -->
+
+{{ define "base-html" }}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go Backend Starter Template</title>
+    <script
+      src="https://unpkg.com/htmx.org@2.0.4"
+      integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+"
+      crossorigin="anonymous"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+  </head>
+  <body>
+    <main id="index-main" class="container">
+      <h1>Go Web Dev Template</h1>
+      <p>
+        This is a minimal template for building a web application using Golang +
+        HTMX + Postgres
+      </p>
+    </main>
+  </body>
+  <style>
+    #index-main {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #index-main h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    #index-main p {
+      font-size: 1.2rem;
+      text-align: center;
+    }
+  </style>
+</html>
+{{ end }}

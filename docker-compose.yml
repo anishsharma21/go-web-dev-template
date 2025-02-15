@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: go_web_dev_template_db
+    restart: always
+    environment:
+      POSTGRES_USER: gowebdev
+      POSTGRES_PASSWORD: gowebdevsecret
+      POSTGRES_DB: gowebdevdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

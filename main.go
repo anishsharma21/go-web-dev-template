@@ -1,0 +1,198 @@
+package main
+
+import (
+	"context"
+	"embed"
+	"errors"
+	"fmt"
+	"html/template"
+	"log/slog"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/anishsharma21/go-web-dev-template/internal/handlers"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+//go:embed templates/*.html
+var templateFS embed.FS
+
+var (
+	env       string
+	dbConnStr string
+
+	dbPool    *pgxpool.Pool
+	templates *template.Template
+)
+
+func init() {
+	// Determine environment (production, development, cicd)
+	env = os.Getenv("ENV")
+	if env == "production" || env == "cicd" {
+		dbConnStr = os.Getenv("DATABASE_URL")
+		if dbConnStr == "" {
+			slog.Error("DATABASE_URL environment variable not set")
+			os.Exit(1)
+		}
+	} else {
+		// local db connection string
+		dbConnStr = "postgresql://gowebdev:gowebdevsecret@localhost:5432/gowebdevdb?sslmode=disable"
+	}
+
+	// Set up slog as default logger across the application
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+
+	// Parse html templates
+	var err error
+	templates, err = template.ParseFS(templateFS, "templates/*.html")
+	if err != nil {
+		slog.Error("Failed to parse templates", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("Templates parsed successfully")
+}
+
+func main() {
+	// Setup context for graceful shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Setup database connection pool
+	dbPool, err := setupDBPool(ctx)
+	if err != nil {
+		slog.Error("Failed to initialise database connection pool", "error", err)
+		return
+	}
+	defer dbPool.Close()
+
+	// TODO implement the following migration logic
+	// Run database migrations if environment variable is set for it
+	// if os.Getenv("RUN_MIGRATION") == "true" {
+	// 	slog.Info("Attempting to run database migrations...")
+	// 	err := runMigrations()
+	// 	if err != nil {
+	// 		slog.Error("Failed to run database migrations", "error", err)
+	// 		return
+	// 	}
+	// 	slog.Info("Database migrations complete.")
+	// } else {
+	// 	slog.Info("Database migrations skipped.")
+	// }
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Setup HTTP server
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: setupRoutes(dbPool),
+		BaseContext: func(l net.Listener) context.Context {
+			url := "http://" + l.Addr().String()
+			slog.Info(fmt.Sprintf("Server started on %s", url))
+			return ctx
+		},
+	}
+
+	shutdownChan := make(chan bool, 1)
+
+	// Start server in a goroutine
+	go func() {
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			slog.Error("HTTP server closed early", "error", err)
+		}
+		slog.Info("Stopped server new connections.")
+		shutdownChan <- true
+	}()
+
+	// Listen for OS signals (SIGINT, SIGTERM) to shutdown server gracefully
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-sigChan
+	slog.Warn("Received signal", "signal", sig.String())
+
+	// Shutdown server gracefully within 10 seconds
+	shutdownCtx, shutdownRelease := context.WithTimeout(ctx, 10*time.Second)
+	defer shutdownRelease()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		slog.Error("HTTP shutdown error occurred", "error", err)
+	}
+	<-shutdownChan
+	close(shutdownChan)
+
+	slog.Info("Graceful server shutdown complete.")
+}
+
+func setupDBPool(ctx context.Context) (*pgxpool.Pool, error) {
+	// Parse database connection string into pgxpool config
+	config, err := pgxpool.ParseConfig(dbConnStr)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse database connection string: %v", err)
+	}
+
+	// Set connection pool configurations
+	// Sets the maximum time an idle connection can remain in the pool before being closed
+	config.MaxConnIdleTime = 1 * time.Minute
+	// To prevent database and backend from ever sleeping, uncomment the following line
+	config.MinConns = 1
+
+	// Try to initialise database connection pool 5 times with exponential backoff
+	var dbPool *pgxpool.Pool
+	for i := 1; i <= 5; i++ {
+		dbPool, err = pgxpool.NewWithConfig(ctx, config)
+		if err == nil && dbPool != nil {
+			break
+		}
+		slog.Warn("Failed to initialise database connection pool", "error", err)
+		slog.Info(fmt.Sprintf("Retrying in %d seconds...", i*i))
+		time.Sleep(time.Duration(i*i) * time.Second)
+	}
+	if dbPool == nil {
+		return nil, fmt.Errorf("Failed to initialise database connection pool after 5 attempts")
+	}
+
+	// Try to ping database connection pool 5 times with exponential backoff
+	for i := 1; i <= 5; i++ {
+		err = dbPool.Ping(ctx)
+		if err == nil && dbPool != nil {
+			break
+		}
+		slog.Warn("Failed to ping database connection pool", "error", err)
+		slog.Info(fmt.Sprintf("Retrying in %d seconds...", i*i))
+		time.Sleep(time.Duration(i*i) * time.Second)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Failed to ping database connection pool after 5 attempts")
+	}
+
+	return dbPool, nil
+}
+
+func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
+	mux := http.NewServeMux()
+
+	// Default subpath for endpoints return JSON
+	// JSON subpath for endpoints returns JSON
+	// JSON should be stable and not change much as it represents data
+	// Consumers of these endpoints should be concerned with the JSON structure
+
+	// TODO implement the following auth handlers
+	// mux.Handle("POST /signup", handlers.SignUp(dbPool))
+	// mux.Handle("POST /login", handlers.Login(dbPool))
+	// mux.Handle("POST /refresh-token", handlers.RefreshToken())
+
+	// HTML can be dynamic and change a lot as it represents server state
+	// Consumers of these endpoints should not be concerned with the HTML structure
+	// example: mux.Handle("GET /view/users", handlers.GetUsersView(dbPool, templates))
+
+	mux.Handle("GET /", handlers.RenderBaseView(templates))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+	return mux
+}
