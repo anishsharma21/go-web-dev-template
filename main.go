@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"embed"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/anishsharma21/go-web-dev-template/internal/handlers"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pressly/goose/v3"
 )
 
 //go:embed templates/*.html
@@ -69,19 +71,18 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	// TODO implement the following migration logic
 	// Run database migrations if environment variable is set for it
-	// if os.Getenv("RUN_MIGRATION") == "true" {
-	// 	slog.Info("Attempting to run database migrations...")
-	// 	err := runMigrations()
-	// 	if err != nil {
-	// 		slog.Error("Failed to run database migrations", "error", err)
-	// 		return
-	// 	}
-	// 	slog.Info("Database migrations complete.")
-	// } else {
-	// 	slog.Info("Database migrations skipped.")
-	// }
+	if os.Getenv("RUN_MIGRATION") == "true" {
+		slog.Info("Attempting to run database migrations...")
+		err := runMigrations()
+		if err != nil {
+			slog.Error("Failed to run database migrations", "error", err)
+			return
+		}
+		slog.Info("Database migrations complete.")
+	} else {
+		slog.Info("Database migrations skipped.")
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -183,7 +184,7 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	// Consumers of these endpoints should be concerned with the JSON structure
 
 	// TODO implement the following auth handlers
-	// mux.Handle("POST /signup", handlers.SignUp(dbPool))
+	mux.Handle("POST /signup", handlers.SignUp(dbPool))
 	// mux.Handle("POST /login", handlers.Login(dbPool))
 	// mux.Handle("POST /refresh-token", handlers.RefreshToken())
 
@@ -195,4 +196,34 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	return mux
+}
+
+func runMigrations() error {
+	if gooseDriver := os.Getenv("GOOSE_DRIVER"); gooseDriver == "" {
+		return fmt.Errorf("Goose driver not set: GOOSE_DRIVER=?")
+	}
+
+	if gooseDbString := os.Getenv("GOOSE_DBSTRING"); gooseDbString == "" {
+		return fmt.Errorf("Goose db string not set: GOOSE_DBSTRING=?")
+	}
+
+	if gooseMigrationDir := os.Getenv("GOOSE_MIGRATION_DIR"); gooseMigrationDir == "" {
+		return fmt.Errorf("Goose migration dir not set: GOOSE_MIGRATION_DIR=?")
+	}
+
+	db, err := sql.Open("postgres", dbConnStr)
+	if err != nil {
+		return fmt.Errorf("Failed to open database connection for *sql.DB: %v\n", err)
+	}
+	defer db.Close()
+
+	if err = goose.Status(db, "migrations"); err != nil {
+		return fmt.Errorf("Failed to retrieve status of migrations: %v\n", err)
+	}
+
+	if err = goose.Up(db, "migrations"); err != nil {
+		return fmt.Errorf("Failed to run `goose up` command: %v\n", err)
+	}
+
+	return nil
 }
