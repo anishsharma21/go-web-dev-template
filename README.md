@@ -24,9 +24,9 @@ Then, run the following command to install all the go dependencies:
 go mod download
 ```
 
-### Developing locally
+## Developing locally
 
-Set the following environment variables:
+Begin by setting the following environment variables:
 
 ```bash
 export GOOSE_DRIVER=postgres
@@ -35,7 +35,9 @@ export GOOSE_MIGRATION_DIR=migrations
 export JWT_SECRET_KEY=jwtsecret
 ```
 
-To run the code locally, first run an instance of the local database using `docker-compose`. If you don't have `docker` or `docker-compose`, its pretty easy to install them so go ahead and do that - you can use [this link](https://docs.docker.com/desktop/). Then, once you have both installed (which you can check by running `docker version` and `docker compose version`), you can run the following command to start a local postgres database which will have its data persisted:
+### Docker + postgres
+
+To run the code locally you'll need to spin up a local `postgres` database instance. If you don't have `docker` install it using [this link](https://docs.docker.com/desktop/). Then, you should have `docker` installed (which you can check by running `docker version` and `docker compose version`), you can run the following command to start the database with persistent data which remain even after you close it:
 
 ```bash
 docker compose up -d
@@ -43,12 +45,60 @@ docker compose up -d
 
 The `-d` flag is to run it in detached mode - without it, all the logs will appear in your terminal and you will have start a new terminal session to run further commands. It's useful to learn about `docker` and `docker compose` so you understand how to build images and manage containers locally. You can leave this postgres database running, but if you ever want to stop it, you can run `docker compose down`.
 
-## Dev Log
+### Hot Module Reloading (`air`)
 
-I didn't clone my backend template because I wasn't super happy with the implementation, especially the database migration files which were unnecessary. So, I slowly copied parts over, which required installing the following package:
+This tool isn't required but its a quality of life / dx booster. `air` is used for Hot Module Reloading (HMR), which enables your code to automatically recompiled and re-run when changes are made:
 
 ```bash
-go get github.com/jackc/pgx/v5
+go install github.com/air-verse/air@latest
+```
+
+The configuration for `air` is already present in the `.air.toml` file so you can simply run the command `air` on its own from the root of the project, and your server will be started up with HMR:
+
+```bash
+air
+```
+
+### Local Database migrations (`goose`)
+
+Use the following command to install `goose` locally as it will not be included in the project as a dependency:
+
+```bash
+go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+
+With your database running in the background from the previous `docker compose` instructions, check that `goose` is correctly connected to your database by running the following command:
+
+```bash
+goose status
+```
+
+Ensure your database is running, then, run the following command to run the migration up:
+
+```bash
+goose up
+```
+
+If the migration went well, you should see `OK` messages next to each applied sql file, and the final line should say `successfully migrated database to version: ...`. You can check the status again to confirm the migrations occurred successfully. Further migration files can be created using the following command:
+
+```bash
+goose create {name of migration} sql
+```
+
+With the database running, run the following command to run the migration down:
+
+```bash
+goose down
+```
+
+### Other Development Instruction
+
+When working within templates or handlers that render them, make sure to update the `selectors.go` file. This file contains CSS selectors for each template reduce the amount of hard coded values and duplication in the code.
+
+Tests run locally use the local postgres database. To replicate the CICD environment, you can clear your database before running the tests. Use the following command to run tests locally:
+
+```bash
+go test ./tests -v
 ```
 
 ## License
