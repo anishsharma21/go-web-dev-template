@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -52,8 +53,13 @@ func createToken(email string, expiration time.Time) (string, error) {
 }
 
 func ParseTokenClaims(tokenString string) (*CustomClaims, error) {
+	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 	// Parse the token
-	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v\n", t.Header["alg"])
+		}
+
 		return JWT_SECRET_KEY, nil
 	})
 	if err != nil {

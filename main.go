@@ -188,7 +188,7 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 
 	// TODO implement the following auth handlers
 	mux.Handle("POST /signup", middleware.LoggingMiddleware(handlers.SignUp(dbPool)))
-	// mux.Handle("POST /login", handlers.Login(dbPool))
+	mux.Handle("POST /login", middleware.LoggingMiddleware(handlers.Login(dbPool)))
 	// mux.Handle("POST /refresh-token", handlers.RefreshToken())
 
 	// HTML can be dynamic and change a lot as it represents server state
