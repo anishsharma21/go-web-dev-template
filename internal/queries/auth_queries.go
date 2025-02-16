@@ -42,7 +42,7 @@ func SignUpNewUser(ctx context.Context, dbPool *pgxpool.Pool, user models.User) 
 		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 
-	slog.Info(fmt.Sprintf("User signed up successfully: %s", user.Email), "command_tag", ct.String())
+	slog.InfoContext(ctx, fmt.Sprintf("User signed up successfully: %s", user.Email), "command_tag", ct.String())
 
 	return nil
 }

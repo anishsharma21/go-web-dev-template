@@ -45,20 +45,30 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		requestID := uuid.New().String()
 		ctx := context.WithValue(r.Context(), "request_id", requestID)
 
+		// TODO logic to parse email from JWT if present and get the email to set user_id
+		// user, err := queries.GetUserByEmail(ctx, dbPool, email)
+		// if err != nil {
+		// 	slog.ErrorContext(ctx, "Failed to get user from database", "error", err)
+		// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
+		// 	return
+		// }
+
+		// ctx = context.WithValue(ctx, "user_id", user.ID)
+
 		// Capture response status code using a response writer wrapper
 		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 
 		// Call the next handler
 		next.ServeHTTP(rw, r.WithContext(ctx))
 
-		duration := float64(time.Since(start).Milliseconds())
+		duration := float64(time.Since(start))
 
 		// Log the request and response information
 		slog.InfoContext(ctx, fmt.Sprintf("%s %s %d", r.Method, r.URL.Path, rw.statusCode),
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 			slog.Int("status_code", rw.statusCode),
-			slog.String("response_time", fmt.Sprintf("%.2fms", duration)),
+			slog.String("response_time", fmt.Sprintf("%.2fms", duration/1000.0)),
 			slog.String("client_ip", r.RemoteAddr),
 			slog.String("user_agent", r.UserAgent()),
 		)
