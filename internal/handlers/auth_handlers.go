@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"os"
+	"regexp"
 	"time"
 
 	"github.com/anishsharma21/go-web-dev-template/internal/auth"
@@ -14,6 +16,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
+var isProduction = os.Getenv("ENV") == "production"
+
 func SignUp(dbPool *pgxpool.Pool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		email := template.HTMLEscapeString(r.FormValue("email"))
@@ -22,8 +27,20 @@ func SignUp(dbPool *pgxpool.Pool) http.Handler {
 		password := template.HTMLEscapeString(r.FormValue("password"))
 
 		if email == "" || firstName == "" || lastName == "" || password == "" {
-			slog.Error("Email, first name, last name or password is empty")
+			slog.Error("Missing required fields for signup", "email", email, "first_name", firstName, "last_name", lastName)
 			http.Error(w, "Email, first name, last name or password is empty", http.StatusBadRequest)
+			return
+		}
+
+		if !emailRegex.MatchString(email) {
+			slog.Error("Invalid email format provided", "email", email)
+			http.Error(w, "Invalid email format provided", http.StatusBadRequest)
+			return
+		}
+
+		if len(password) < 8 {
+			slog.Error("Password too short", "email", email)
+			http.Error(w, "Password must be at least 8 characters long", http.StatusBadRequest)
 			return
 		}
 
@@ -42,21 +59,21 @@ func SignUp(dbPool *pgxpool.Pool) http.Handler {
 			Password:  &passwordHashString,
 		})
 		if err != nil {
-			slog.Error("Failed to sign up new user", "error", err)
+			slog.Error("Failed to sign up new user", "error", err, "email", email, "first_name", firstName, "last_name", lastName)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		accessToken, err := auth.CreateAccessToken(email)
 		if err != nil {
-			slog.Error("Failed to create JWT token", "error", err)
+			slog.Error("Failed to create JWT access token", "error", err, "email", email, "first_name", firstName, "last_name", lastName)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
 		refreshToken, err := auth.CreateRefreshToken(email)
 		if err != nil {
-			slog.Error("Failed to create refresh token", "error", err)
+			slog.Error("Failed to create refresh token", "error", err, "email", email, "first_name", firstName, "last_name", lastName)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
@@ -65,7 +82,7 @@ func SignUp(dbPool *pgxpool.Pool) http.Handler {
 			Name:     "refresh_token",
 			Value:    refreshToken,
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   isProduction,
 			SameSite: http.SameSiteStrictMode,
 			Path:     "/",
 			Expires:  time.Now().Add(24 * 7 * time.Hour),
