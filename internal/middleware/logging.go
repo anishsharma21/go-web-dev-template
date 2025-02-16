@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/anishsharma21/go-web-dev-template/internal/auth"
 	"github.com/google/uuid"
 )
 
@@ -45,15 +46,18 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		requestID := uuid.New().String()
 		ctx := context.WithValue(r.Context(), "request_id", requestID)
 
-		// TODO logic to parse email from JWT if present and get the email to set user_id
-		// user, err := queries.GetUserByEmail(ctx, dbPool, email)
-		// if err != nil {
-		// 	slog.ErrorContext(ctx, "Failed to get user from database", "error", err)
-		// 	http.Error(w, "Internal server error", http.StatusInternalServerError)
-		// 	return
-		// }
+		// get email from JWT claims if present
+		tokenString := r.Header.Get("Authorization")
+		if tokenString != "" {
+			claims, err := auth.ParseTokenClaims(r.Header.Get("Authorization"))
+			if err != nil {
+				slog.ErrorContext(ctx, "Failed to parse token claims", "error", err)
+				http.Error(w, "Internal server error", http.StatusInternalServerError)
+				return
+			}
 
-		// ctx = context.WithValue(ctx, "user_id", user.ID)
+			ctx = context.WithValue(ctx, "user_id", claims.Email)
+		}
 
 		// Capture response status code using a response writer wrapper
 		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
