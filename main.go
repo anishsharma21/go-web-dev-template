@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/anishsharma21/go-web-dev-template/internal/handlers"
+	"github.com/anishsharma21/go-web-dev-template/internal/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pressly/goose/v3"
 )
@@ -46,7 +47,9 @@ func init() {
 	}
 
 	// Set up slog as default logger across the application
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+	// Default logger is JSON logger with request_id and user_id fields added if they exist in the context
+	defaultHandler := slog.NewJSONHandler(os.Stdout, nil)
+	slog.SetDefault(slog.New(&middleware.CustomLogHandler{Handler: defaultHandler}))
 
 	// Parse html templates
 	var err error
@@ -184,7 +187,7 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	// Consumers of these endpoints should be concerned with the JSON structure
 
 	// TODO implement the following auth handlers
-	mux.Handle("POST /signup", handlers.SignUp(dbPool))
+	mux.Handle("POST /signup", middleware.LoggingMiddleware(handlers.SignUp(dbPool)))
 	// mux.Handle("POST /login", handlers.Login(dbPool))
 	// mux.Handle("POST /refresh-token", handlers.RefreshToken())
 
@@ -192,7 +195,7 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	// Consumers of these endpoints should not be concerned with the HTML structure
 	// example: mux.Handle("GET /view/users", handlers.GetUsersView(dbPool, templates))
 
-	mux.Handle("GET /", handlers.RenderBaseView(templates))
+	mux.Handle("GET /", middleware.LoggingMiddleware(handlers.RenderBaseView(templates)))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	return mux
