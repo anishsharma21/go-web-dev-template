@@ -193,7 +193,7 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 
 	// HTML can be dynamic and change a lot as it represents server state
 	// Consumers of these endpoints should not be concerned with the HTML structure
-	// example: mux.Handle("GET /view/users", handlers.GetUsersView(dbPool, templates))
+	mux.Handle("GET /users", handlers.RenderBaseUserView(dbPool, templates))
 
 	mux.Handle("GET /", middleware.LoggingMiddleware(handlers.RenderBaseView(templates)))
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
