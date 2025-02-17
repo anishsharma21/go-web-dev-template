@@ -12,11 +12,6 @@ import (
 
 var JWT_SECRET_KEY []byte
 
-type CustomClaims struct {
-	Email string `json:"email"`
-	jwt.RegisteredClaims
-}
-
 func init() {
 	secretKeyString := os.Getenv("JWT_SECRET_KEY")
 	if secretKeyString == "" {
@@ -27,18 +22,22 @@ func init() {
 	JWT_SECRET_KEY = []byte(secretKeyString)
 }
 
-func CreateAccessToken(email string) (string, error) {
-	return createToken(email, time.Now().Add(15*time.Minute))
+func CreateAccessToken(id int) (string, error) {
+	return createToken(id, time.Now().Add(15*time.Minute))
 }
 
-func CreateRefreshToken(email string) (string, error) {
-	return createToken(email, time.Now().Add(7*24*time.Hour))
+func CreateRefreshToken(id int) (string, error) {
+	return createToken(id, time.Now().Add(7*24*time.Hour))
 }
 
-func createToken(email string, expiration time.Time) (string, error) {
-	// Create a new token object, specifying signing method and the claims
+type CustomClaims struct {
+	ID int `json:"id"`
+	jwt.RegisteredClaims
+}
+
+func createToken(id int, expiration time.Time) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{
-		email,
+		id,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiration),
 		},
@@ -52,9 +51,9 @@ func createToken(email string, expiration time.Time) (string, error) {
 	return tokenString, nil
 }
 
-func ParseEmailFromToken(tokenString string) (string, error) {
+func ParseIdFromToken(tokenString string) (int, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-	// Parse the token
+
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v\n", t.Header["alg"])
@@ -63,18 +62,18 @@ func ParseEmailFromToken(tokenString string) (string, error) {
 		return JWT_SECRET_KEY, nil
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to parse token: %w", err)
+		return -1, fmt.Errorf("failed to parse token: %w", err)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return "", fmt.Errorf("invalid token claims")
+		return -1, fmt.Errorf("invalid token claims")
 	}
 
-	email, ok := claims["email"].(string)
+	idFloat, ok := claims["id"].(float64)
 	if !ok {
-		return "", fmt.Errorf("invalid token claims: email not found")
+		return -1, fmt.Errorf("invalid token claims: id not found")
 	}
 
-	return email, nil
+	return int(idFloat), nil
 }

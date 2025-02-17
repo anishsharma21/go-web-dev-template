@@ -56,14 +56,21 @@ func SignUp(dbPool *pgxpool.Pool) http.Handler {
 			return
 		}
 
-		accessToken, err := auth.CreateAccessToken(email)
+		user, err := queries.GetUserByEmail(r.Context(), dbPool, email)
+		if err != nil {
+			slog.ErrorContext(r.Context(), "Failed to find user after signup", "error", err, "email", email, "first_name", firstName, "last_name", lastName)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		accessToken, err := auth.CreateAccessToken(user.ID)
 		if err != nil {
 			slog.ErrorContext(r.Context(), "Failed to create JWT access token", "error", err, "email", email, "first_name", firstName, "last_name", lastName)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
-		refreshToken, err := auth.CreateRefreshToken(email)
+		refreshToken, err := auth.CreateRefreshToken(user.ID)
 		if err != nil {
 			slog.ErrorContext(r.Context(), "Failed to create refresh token", "error", err, "email", email, "first_name", firstName, "last_name", lastName)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

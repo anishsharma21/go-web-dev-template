@@ -27,8 +27,8 @@ func (h *CustomLogHandler) Handle(ctx context.Context, r slog.Record) error {
 	if requestID, ok := ctx.Value("request_id").(string); ok {
 		r.AddAttrs(slog.String("request_id", requestID))
 	}
-	if userID, ok := ctx.Value("user_id").(string); ok {
-		r.AddAttrs(slog.String("user_id", userID))
+	if userID, ok := ctx.Value("user_id").(int); ok {
+		r.AddAttrs(slog.Int("user_id", userID))
 	}
 	return h.Handler.Handle(ctx, r)
 }
@@ -49,14 +49,12 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// get email from JWT claims if present
 		tokenString := r.Header.Get("Authorization")
 		if tokenString != "" {
-			email, err := auth.ParseEmailFromToken(tokenString)
+			id, err := auth.ParseIdFromToken(tokenString)
 			if err != nil {
 				slog.ErrorContext(ctx, "Failed to parse token claims", "error", err)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
-				return
 			}
 
-			ctx = context.WithValue(ctx, "user_id", email)
+			ctx = context.WithValue(ctx, "user_id", id)
 		}
 
 		// Capture response status code using a response writer wrapper
@@ -72,7 +70,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 			slog.Int("status_code", rw.statusCode),
-			slog.String("response_time", fmt.Sprintf("%.2fms", duration/1000.0)),
+			slog.String("response_time", fmt.Sprintf("%.2fms", duration/1_000_000.0)),
 			slog.String("client_ip", r.RemoteAddr),
 			slog.String("user_agent", r.UserAgent()),
 		)

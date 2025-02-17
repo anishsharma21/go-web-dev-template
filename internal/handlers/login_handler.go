@@ -45,14 +45,14 @@ func Login(dbPool *pgxpool.Pool) http.Handler {
 			return
 		}
 
-		accessToken, err := auth.CreateAccessToken(user.Email)
+		accessToken, err := auth.CreateAccessToken(user.ID)
 		if err != nil {
 			slog.Error("Failed to create JWT token", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
-		refreshToken, err := auth.CreateRefreshToken(email)
+		refreshToken, err := auth.CreateRefreshToken(user.ID)
 		if err != nil {
 			slog.Error("Failed to create refresh token", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
