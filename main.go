@@ -178,26 +178,67 @@ func setupDBPool(ctx context.Context) (*pgxpool.Pool, error) {
 	return dbPool, nil
 }
 
+type routeConfig struct {
+	Handler      http.Handler
+	ApplyLogging bool
+	ApplyJWT     bool
+}
+
 func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// Default subpath for endpoints return JSON
-	// JSON subpath for endpoints returns JSON
-	// JSON should be stable and not change much as it represents data
-	// Consumers of these endpoints should be concerned with the JSON structure
+	routes := map[string]routeConfig{
+		"POST /signup": {
+			Handler:      handlers.SignUp(dbPool),
+			ApplyLogging: true,
+			ApplyJWT:     false,
+		},
+		"POST /login": {
+			Handler:      handlers.Login(dbPool),
+			ApplyLogging: true,
+			ApplyJWT:     false,
+		},
+		"POST /refresh-token": {
+			Handler:      handlers.RefreshToken(),
+			ApplyLogging: true,
+			ApplyJWT:     true,
+		},
+		"GET /users": {
+			Handler:      handlers.RenderBaseUserView(dbPool, templates),
+			ApplyLogging: true,
+			ApplyJWT:     true,
+		},
+		"GET /": {
+			Handler:      handlers.RenderBaseView(templates),
+			ApplyLogging: true,
+			ApplyJWT:     false,
+		},
+		"GET /static/": {
+			Handler:      http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
+			ApplyLogging: false,
+			ApplyJWT:     false,
+		},
+	}
 
-	mux.Handle("POST /signup", middleware.LoggingMiddleware(handlers.SignUp(dbPool)))
-	mux.Handle("POST /login", middleware.LoggingMiddleware(handlers.Login(dbPool)))
-	mux.Handle("POST /refresh-token", middleware.LoggingMiddleware(handlers.RefreshToken()))
-
-	// HTML can be dynamic and change a lot as it represents server state
-	// Consumers of these endpoints should not be concerned with the HTML structure
-	mux.Handle("GET /users", middleware.LoggingMiddleware(handlers.RenderBaseUserView(dbPool, templates)))
-
-	mux.Handle("GET /", middleware.LoggingMiddleware(handlers.RenderBaseView(templates)))
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	for pattern, config := range routes {
+		handler := config.Handler
+		if config.ApplyLogging {
+			handler = middleware.LoggingMiddleware(handler)
+		}
+		// if config.ApplyJWT {
+		//     handler = middleware.JWTMiddleware(handler)
+		// }
+		mux.Handle(pattern, handler)
+	}
 
 	return mux
+}
+
+func chainMiddleware(handler http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
+	for _, middleware := range middlewares {
+		handler = middleware(handler)
+	}
+	return handler
 }
 
 func runMigrations() error {
