@@ -186,10 +186,9 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	// JSON should be stable and not change much as it represents data
 	// Consumers of these endpoints should be concerned with the JSON structure
 
-	// TODO implement the following auth handlers
 	mux.Handle("POST /signup", middleware.LoggingMiddleware(handlers.SignUp(dbPool)))
 	mux.Handle("POST /login", middleware.LoggingMiddleware(handlers.Login(dbPool)))
-	// mux.Handle("POST /refresh-token", handlers.RefreshToken())
+	mux.Handle("POST /refresh-token", middleware.LoggingMiddleware(handlers.RefreshToken()))
 
 	// HTML can be dynamic and change a lot as it represents server state
 	// Consumers of these endpoints should not be concerned with the HTML structure

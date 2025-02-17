@@ -49,7 +49,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// get user id from JWT claims if present
 		tokenString := r.Header.Get("Authorization")
 		if tokenString != "" {
-			id, err := auth.ParseIdFromToken(tokenString)
+			id, err := auth.VerifyToken(tokenString)
 			if err != nil {
 				slog.ErrorContext(ctx, "Failed to parse token claims", "error", err)
 			}

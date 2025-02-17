@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -14,6 +15,77 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
+
+func Login(dbPool *pgxpool.Pool) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		email := template.HTMLEscapeString(r.FormValue("email"))
+		password := template.HTMLEscapeString(r.FormValue("password"))
+
+		if email == "" || password == "" {
+			slog.Error("Email or password is empty")
+			http.Error(w, "Invalid email or password", http.StatusBadRequest)
+			return
+		}
+
+		user, err := queries.GetUserByEmail(r.Context(), dbPool, email)
+		if err != nil {
+			slog.Error("Failed to find user when logging in", "error", err)
+			http.Error(w, "Invalid email or password", http.StatusNotFound)
+			return
+		}
+
+		if user.Email != email {
+			slog.Error("User email does not match", "user_email", user.Email, "email", email)
+			http.Error(w, "Invalid email or password", http.StatusNotFound)
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
+		if err != nil {
+			slog.Error("Failed to compare password hashes", "error", err)
+			http.Error(w, "Invalid email or password", http.StatusNotFound)
+			return
+		}
+
+		accessToken, err := auth.CreateAccessToken(user.ID)
+		if err != nil {
+			slog.Error("Failed to create JWT token", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		refreshToken, err := auth.CreateRefreshToken(user.ID)
+		if err != nil {
+			slog.Error("Failed to create refresh token", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "refresh_token",
+			Value:    refreshToken,
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+			Path:     "/",
+			Expires:  time.Now().Add(24 * 7 * time.Hour),
+		})
+
+		response := map[string]string{
+			"token": accessToken,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			slog.Error("Failed to encode response", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		slog.InfoContext(r.Context(), fmt.Sprintf("User logged in: %s", email))
+	})
+}
 
 var isProduction = os.Getenv("ENV") == "production"
 
@@ -95,6 +167,44 @@ func SignUp(dbPool *pgxpool.Pool) http.Handler {
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			slog.ErrorContext(r.Context(), "Failed to encode response", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func RefreshToken() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("refresh_token")
+		if err != nil {
+			slog.ErrorContext(r.Context(), "Failed to get refresh token cookie, 'refresh_token', from request", "error", err)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		refreshToken := cookie.Value
+		id, err := auth.VerifyToken(refreshToken)
+		if err != nil {
+			slog.ErrorContext(r.Context(), "Error validating refresh token", "error", err)
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		accessToken, err := auth.CreateAccessToken(id)
+		if err != nil {
+			slog.ErrorContext(r.Context(), "Failed to create new access token", "error", err, "id", id)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		response := map[string]string{
+			"token": accessToken,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		err = json.NewEncoder(w).Encode(response)
+		if err != nil {
+			slog.ErrorContext(r.Context(), "Failed to encode refresh token response", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}

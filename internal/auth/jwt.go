@@ -51,7 +51,7 @@ func createToken(id int, expiration time.Time) (string, error) {
 	return tokenString, nil
 }
 
-func ParseIdFromToken(tokenString string) (int, error) {
+func VerifyToken(tokenString string) (int, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
