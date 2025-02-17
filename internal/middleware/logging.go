@@ -46,7 +46,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		requestID := uuid.New().String()
 		ctx := context.WithValue(r.Context(), "request_id", requestID)
 
-		// get email from JWT claims if present
+		// get user id from JWT claims if present
 		tokenString := r.Header.Get("Authorization")
 		if tokenString != "" {
 			id, err := auth.ParseIdFromToken(tokenString)
