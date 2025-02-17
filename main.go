@@ -188,6 +188,7 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	routes := map[string]routeConfig{
+		// auth
 		"POST /signup": {
 			Handler:      handlers.SignUp(dbPool),
 			ApplyLogging: true,
@@ -203,6 +204,8 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 			ApplyLogging: true,
 			ApplyJWT:     true,
 		},
+
+		// users
 		"GET /users": {
 			Handler:      handlers.RenderBaseUserView(dbPool, templates),
 			ApplyLogging: true,
@@ -213,6 +216,8 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 			ApplyLogging: true,
 			ApplyJWT:     false,
 		},
+
+		// other
 		"GET /static/": {
 			Handler:      http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
 			ApplyLogging: false,

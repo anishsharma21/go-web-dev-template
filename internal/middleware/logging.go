@@ -65,8 +65,15 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		duration := float64(time.Since(start))
 
+		logLevel := slog.LevelInfo
+		if rw.statusCode >= 400 && rw.statusCode < 500 {
+			logLevel = slog.LevelWarn
+		} else if rw.statusCode >= 500 {
+			logLevel = slog.LevelError
+		}
+
 		// Log the request and response information
-		slog.InfoContext(ctx, fmt.Sprintf("%s %s %d", r.Method, r.URL.Path, rw.statusCode),
+		slog.Log(ctx, logLevel, fmt.Sprintf("%s %s %d", r.Method, r.URL.Path, rw.statusCode),
 			slog.String("method", r.Method),
 			slog.String("path", r.URL.Path),
 			slog.Int("status_code", rw.statusCode),
