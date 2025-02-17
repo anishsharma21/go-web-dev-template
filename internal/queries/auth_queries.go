@@ -6,19 +6,11 @@ import (
 	"log/slog"
 
 	"github.com/anishsharma21/go-web-dev-template/internal/types/models"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func SignUpNewUser(ctx context.Context, dbPool *pgxpool.Pool, user models.User) error {
-	args := pgx.NamedArgs{
-		"email":      user.Email,
-		"first_name": user.FirstName,
-		"last_name":  user.LastName,
-		"password":   user.Password,
-	}
-
-	query := "INSERT INTO users (email, first_name, last_name, password) VALUES (@email, @first_name, @last_name, @password)"
+	query := "INSERT INTO users (email, first_name, last_name, password) VALUES ($1, $2, $3, $4)"
 
 	tx, err := dbPool.Begin(ctx)
 	if err != nil {
@@ -26,7 +18,7 @@ func SignUpNewUser(ctx context.Context, dbPool *pgxpool.Pool, user models.User) 
 	}
 	defer tx.Rollback(ctx)
 
-	ct, err := tx.Exec(ctx, query, args)
+	ct, err := tx.Exec(ctx, query, user.Email, user.FirstName, user.LastName, user.Password)
 	if err != nil {
 		tx.Rollback(ctx)
 		return fmt.Errorf("failed to execute query: %v", err)

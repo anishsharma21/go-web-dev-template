@@ -52,7 +52,7 @@ func createToken(email string, expiration time.Time) (string, error) {
 	return tokenString, nil
 }
 
-func ParseTokenClaims(tokenString string) (*CustomClaims, error) {
+func ParseEmailFromToken(tokenString string) (string, error) {
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
 	// Parse the token
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
@@ -63,13 +63,18 @@ func ParseTokenClaims(tokenString string) (*CustomClaims, error) {
 		return JWT_SECRET_KEY, nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse token: %w", err)
+		return "", fmt.Errorf("failed to parse token: %w", err)
 	}
 
-	claims, ok := token.Claims.(*CustomClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+		return "", fmt.Errorf("invalid token claims")
 	}
 
-	return claims, nil
+	email, ok := claims["email"].(string)
+	if !ok {
+		return "", fmt.Errorf("invalid token claims: email not found")
+	}
+
+	return email, nil
 }

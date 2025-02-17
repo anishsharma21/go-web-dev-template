@@ -22,13 +22,13 @@ func GetUserByEmail(ctx context.Context, dbPool *pgxpool.Pool, email string) (mo
 }
 
 func GetUsers(ctx context.Context, dbPool *pgxpool.Pool) ([]models.User, error) {
-	query := "SELECT * FROM users"
+	query := "SELECT id, first_name, last_name, email, created_at FROM users"
 
 	rows, err := dbPool.Query(ctx, query)
-	defer rows.Close()
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving users: %w", err)
 	}
+	defer rows.Close()
 
 	var users []models.User
 	users, err = pgx.CollectRows[models.User](rows, pgx.RowToStructByNameLax[models.User])

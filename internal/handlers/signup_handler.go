@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"regexp"
 	"time"
 
 	"github.com/anishsharma21/go-web-dev-template/internal/auth"
@@ -16,7 +15,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
 var isProduction = os.Getenv("ENV") == "production"
 
 func SignUp(dbPool *pgxpool.Pool) http.Handler {
@@ -28,13 +26,7 @@ func SignUp(dbPool *pgxpool.Pool) http.Handler {
 
 		if email == "" || firstName == "" || lastName == "" || password == "" {
 			slog.ErrorContext(r.Context(), "Missing required fields for signup", "email", email, "first_name", firstName, "last_name", lastName)
-			http.Error(w, "Email, first name, last name or password is empty", http.StatusBadRequest)
-			return
-		}
-
-		if !emailRegex.MatchString(email) {
-			slog.ErrorContext(r.Context(), "Invalid email format provided", "email", email)
-			http.Error(w, "Invalid email format provided", http.StatusBadRequest)
+			http.Error(w, "Email, first name, last name or password is invalid", http.StatusBadRequest)
 			return
 		}
 

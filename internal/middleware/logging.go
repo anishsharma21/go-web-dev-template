@@ -17,11 +17,6 @@ type responseWriter struct {
 	statusCode int
 }
 
-func (rw *responseWriter) WriteHeader(statusCode int) {
-	rw.statusCode = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
-}
-
 // CustomLogHandler for adding request_id and user_id fields to the log record
 type CustomLogHandler struct {
 	slog.Handler
@@ -38,6 +33,11 @@ func (h *CustomLogHandler) Handle(ctx context.Context, r slog.Record) error {
 	return h.Handler.Handle(ctx, r)
 }
 
+func (rw *responseWriter) WriteHeader(statusCode int) {
+	rw.statusCode = statusCode
+	rw.ResponseWriter.WriteHeader(statusCode)
+}
+
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
@@ -49,14 +49,14 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		// get email from JWT claims if present
 		tokenString := r.Header.Get("Authorization")
 		if tokenString != "" {
-			claims, err := auth.ParseTokenClaims(r.Header.Get("Authorization"))
+			email, err := auth.ParseEmailFromToken(tokenString)
 			if err != nil {
 				slog.ErrorContext(ctx, "Failed to parse token claims", "error", err)
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 				return
 			}
 
-			ctx = context.WithValue(ctx, "user_id", claims.Email)
+			ctx = context.WithValue(ctx, "user_id", email)
 		}
 
 		// Capture response status code using a response writer wrapper

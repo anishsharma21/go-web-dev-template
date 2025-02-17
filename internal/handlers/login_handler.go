@@ -21,27 +21,27 @@ func Login(dbPool *pgxpool.Pool) http.Handler {
 
 		if email == "" || password == "" {
 			slog.Error("Email or password is empty")
-			http.Error(w, "Email or password is empty", http.StatusBadRequest)
+			http.Error(w, "Invalid email or password", http.StatusBadRequest)
 			return
 		}
 
 		user, err := queries.GetUserByEmail(r.Context(), dbPool, email)
 		if err != nil {
 			slog.Error("Failed to find user when logging in", "error", err)
-			http.Error(w, "User not found", http.StatusNotFound)
+			http.Error(w, "Invalid email or password", http.StatusNotFound)
 			return
 		}
 
 		if user.Email != email {
 			slog.Error("User email does not match", "user_email", user.Email, "email", email)
-			http.Error(w, "Failed to find user", http.StatusNotFound)
+			http.Error(w, "Invalid email or password", http.StatusNotFound)
 			return
 		}
 
 		err = bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password))
 		if err != nil {
 			slog.Error("Failed to compare password hashes", "error", err)
-			http.Error(w, "Failed to find user", http.StatusNotFound)
+			http.Error(w, "Invalid email or password", http.StatusNotFound)
 			return
 		}
 
