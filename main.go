@@ -201,8 +201,8 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 		},
 		"POST /refresh-token": {
 			Handler:      handlers.RefreshToken(),
-			ApplyLogging: true,
-			ApplyJWT:     true,
+			ApplyLogging: false,
+			ApplyJWT:     false,
 		},
 
 		// users
@@ -230,9 +230,9 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 		if config.ApplyLogging {
 			handler = middleware.LoggingMiddleware(handler)
 		}
-		// if config.ApplyJWT {
-		//     handler = middleware.JWTMiddleware(handler)
-		// }
+		if config.ApplyJWT {
+			handler = middleware.JWTMiddleware(handler)
+		}
 		mux.Handle(pattern, handler)
 	}
 

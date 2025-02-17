@@ -62,7 +62,7 @@ func VerifyToken(tokenString string) (int, error) {
 		return JWT_SECRET_KEY, nil
 	})
 	if err != nil {
-		return -1, fmt.Errorf("failed to parse token: %w", err)
+		return -1, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)

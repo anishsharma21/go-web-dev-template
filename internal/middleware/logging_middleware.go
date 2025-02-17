@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/anishsharma21/go-web-dev-template/internal/auth"
@@ -51,7 +52,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		if tokenString != "" {
 			id, err := auth.VerifyToken(tokenString)
 			if err != nil {
-				slog.ErrorContext(ctx, "Failed to parse token claims", "error", err)
+				slog.WarnContext(ctx, "Failed to parse token claims", "error", err)
 			}
 
 			ctx = context.WithValue(ctx, "user_id", id)
@@ -73,13 +74,15 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Log the request and response information
-		slog.Log(ctx, logLevel, fmt.Sprintf("%s %s %d", r.Method, r.URL.Path, rw.statusCode),
-			slog.String("method", r.Method),
-			slog.String("path", r.URL.Path),
-			slog.Int("status_code", rw.statusCode),
-			slog.String("response_time", fmt.Sprintf("%.2fms", duration/1_000_000.0)),
-			slog.String("client_ip", r.RemoteAddr),
-			slog.String("user_agent", r.UserAgent()),
-		)
+		if !strings.Contains(r.URL.Path, "favicon") {
+			slog.Log(ctx, logLevel, fmt.Sprintf("%s %s %d", r.Method, r.URL.Path, rw.statusCode),
+				slog.String("method", r.Method),
+				slog.String("path", r.URL.Path),
+				slog.Int("status_code", rw.statusCode),
+				slog.String("response_time", fmt.Sprintf("%.2fms", duration/1_000_000.0)),
+				slog.String("client_ip", r.RemoteAddr),
+				slog.String("user_agent", r.UserAgent()),
+			)
+		}
 	})
 }
