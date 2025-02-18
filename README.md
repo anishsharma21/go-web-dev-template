@@ -31,6 +31,7 @@ Begin by setting the following environment variables:
 ```bash
 export GOOSE_DRIVER=postgres
 export GOOSE_DBSTRING="host=localhost port=5432 user=gowebdev password=gowebdevsecret dbname=gowebdevdb sslmode=disable"
+export DATABASE_URL="postgresql://gowebdev:gowebdevsecret@localhost:5432/gowebdevdb?sslmode=disable"
 export GOOSE_MIGRATION_DIR=migrations
 export JWT_SECRET_KEY=jwtsecret
 ```
