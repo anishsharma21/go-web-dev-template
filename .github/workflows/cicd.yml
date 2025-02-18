@@ -32,7 +32,16 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Cache Goose binary
+        uses: actions/cache@v3
+        with:
+          path: ~/go/bin/goose
+          key: ${{ runner.os }}-goose-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-goose-
+
       - name: Install Goose
+        if: steps.cache-goose.outputs.cache-hit != 'true'
         run: go install github.com/pressly/goose/v3/cmd/goose@latest
 
       - name: Run Goose migrations
