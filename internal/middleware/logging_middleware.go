@@ -79,7 +79,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 				slog.String("method", r.Method),
 				slog.String("path", r.URL.Path),
 				slog.Int("status_code", rw.statusCode),
-				slog.String("response_time", fmt.Sprintf("%.2fms", duration/1_000_000.0)),
+				slog.String("processing_duration", fmt.Sprintf("%.2fms", duration/1_000_000.0)),
 				slog.String("client_ip", r.RemoteAddr),
 				slog.String("user_agent", r.UserAgent()),
 			)

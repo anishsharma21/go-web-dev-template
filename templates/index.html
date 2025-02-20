@@ -11,6 +11,7 @@
         This is a minimal template for building a web application using Golang +
         HTMX + Postgres
       </p>
+      <button hx-get="/view/login" id="index-login-btn">Login</button>
     </main>
   </body>
   <style>
@@ -31,6 +32,11 @@
     #index-main p {
       font-size: 1.2rem;
       text-align: center;
+    }
+
+    #index-login-btn {
+      margin-top: 1rem;
+      cursor: pointer;
     }
   </style>
 </html>
