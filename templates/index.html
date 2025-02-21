@@ -3,41 +3,26 @@
 {{ define "base-html" }}
 <!DOCTYPE html>
 <html lang="en">
-  {{ template "head" . }}
-  <body>
-    <main id="index-main" class="container">
-      <h1>Go Web Dev Template</h1>
-      <p>
-        This is a minimal template for building a web application using Golang +
-        HTMX + Postgres
-      </p>
-      <button hx-get="/view/login" id="index-login-btn">Login</button>
+  {{ template "head" }}
+  <body
+    class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen"
+  >
+    <main id="index-main" class="container mx-auto p-4">
+      <div class="text-center">
+        <h1 class="text-4xl font-bold mb-4">Go Web Dev Template</h1>
+        <p class="text-lg mb-6">
+          This is a minimal template for building a web application using Golang
+          + HTMX + Postgres
+        </p>
+        <button
+          hx-get="/view/login"
+          id="index-login-btn"
+          class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-900"
+        >
+          Login
+        </button>
+      </div>
     </main>
   </body>
-  <style>
-    #index-main {
-      width: 50%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-    }
-
-    #index-main h1 {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-    }
-
-    #index-main p {
-      font-size: 1.2rem;
-      text-align: center;
-    }
-
-    #index-login-btn {
-      margin-top: 1rem;
-      cursor: pointer;
-    }
-  </style>
 </html>
 {{ end }}
