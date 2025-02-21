@@ -1,0 +1,10 @@
+#!/bin/sh
+
+./tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
+
+if [ $? -ne 0 ]; then
+  echo "Tailwind CSS build failed. Aborting commit."
+  exit 1
+fi
+
+exit 0
