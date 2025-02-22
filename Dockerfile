@@ -25,8 +25,8 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
-COPY --from=tailwind-builder /app/static/css/output.css ./static/css/output.css
 COPY . .
+COPY --from=tailwind-builder /app/static/css/output.css ./static/css/output.css
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o main
 
