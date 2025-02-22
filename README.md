@@ -60,6 +60,12 @@ The configuration for `air` is already present in the `.air.toml` file so you ca
 air
 ```
 
+You should also pair this up with a command to build your css using TailwindCSS:
+
+```bash
+./tailwindcss -i static/css/input.css -o static/css/output.css
+```
+
 ### Local Database migrations (`goose`)
 
 Use the following command to install `goose` locally as it will not be included in the project as a dependency:
