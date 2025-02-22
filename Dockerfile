@@ -14,9 +14,10 @@ RUN set -ex && \
     chmod +x tailwindcss && \
     ls -la tailwindcss
 
+RUN mkdir -p static/css
 COPY static/css/input.css ./static/css/input.css
 
-RUN ./tailwindcss -i ./static/css/input.css -o ./static/css/output.css
+RUN ./tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify
 
 FROM golang:bullseye AS build-stage
 
@@ -24,8 +25,8 @@ WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
 COPY --from=tailwind-builder /app/static/css/output.css ./static/css/output.css
+COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o main
 
