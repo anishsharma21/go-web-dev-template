@@ -4,20 +4,21 @@
 <!DOCTYPE html>
 <html lang="en">
   {{ template "head" }}
-  <body
-    class="bg-gray-900 text-gray-100 flex items-center justify-center min-h-screen"
-  >
-    <main id="index-main" class="container mx-auto p-4">
-      <div class="text-center">
-        <h1 class="text-4xl font-bold mb-4">Go Web Dev Template</h1>
-        <p class="text-lg mb-6">
+  <body class="flex items-center justify-center min-h-screen bg-black">
+    <main id="index-main" class="container p-4 mx-auto">
+      <div
+        class="w-3/5 p-12 mx-auto text-center text-black bg-white rounded-lg shadow-md h-1/2 shadow-white"
+      >
+        <h1 class="mb-4 text-5xl font-bold">Go Web Dev Template</h1>
+        <p class="mb-6 text-lg">
           This is a minimal template for building a web application using Golang
           + HTMX + Postgres
         </p>
         <button
           hx-get="/view/login"
+          hx-swap="none"
           id="index-login-btn"
-          class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-900"
+          class="px-4 py-2 text-white transition duration-300 ease-in-out bg-black rounded cursor-pointer hover:bg-gray-700"
         >
           Login
         </button>
