@@ -5,10 +5,14 @@ WORKDIR /app
 # Install curl
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# Download and verify Tailwind binary
-RUN TAILWIND_URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-arm64" && \
+# Download and verify Tailwind binary based on architecture
+ARG TARGETARCH
+RUN set -ex && \
+    ARCH=$([ "$TARGETARCH" = "arm64" ] && echo "arm64" || echo "x64") && \
+    TAILWIND_URL="https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-linux-${ARCH}" && \
     curl -sL -o tailwindcss ${TAILWIND_URL} && \
-    chmod +x tailwindcss
+    chmod +x tailwindcss && \
+    ls -la tailwindcss
 
 COPY static/css/input.css ./static/css/input.css
 
