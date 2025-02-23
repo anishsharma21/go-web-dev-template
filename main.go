@@ -25,7 +25,6 @@ import (
 var templateFS embed.FS
 
 var (
-	env       string
 	dbConnStr string
 
 	dbPool    *pgxpool.Pool
@@ -33,17 +32,10 @@ var (
 )
 
 func init() {
-	// Determine environment (production, development, cicd)
-	env = os.Getenv("ENV")
-	if env == "production" || env == "cicd" {
-		dbConnStr = os.Getenv("DATABASE_URL")
-		if dbConnStr == "" {
-			slog.Error("DATABASE_URL environment variable not set")
-			os.Exit(1)
-		}
-	} else {
-		// local db connection string
-		dbConnStr = "postgresql://gowebdev:gowebdevsecret@localhost:5432/gowebdevdb?sslmode=disable"
+	dbConnStr = os.Getenv("DATABASE_URL")
+	if dbConnStr == "" {
+		slog.Error("DATABASE_URL environment variable not set")
+		os.Exit(1)
 	}
 
 	// Set up slog as default logger across the application
