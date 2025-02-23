@@ -63,8 +63,10 @@ air
 You should also pair this up with a command to build your css using TailwindCSS:
 
 ```bash
-./tailwindcss -i static/css/input.css -o static/css/output.css
+./tailwindcss -i static/css/input.css -o static/css/output.css -w
 ```
+
+The `-w` flag ensures your output.css file is re-built each time a change to the styles occurs. This command is useful to run locally, but there is a pre-commit hook that will run before you commit your changes locally that will build the css for you, minify it with the `--minify` flag, and then add it to your tracked changes. You can find the script for it in `.github/hooks/pre-commit`.
 
 ### Local Database migrations (`goose`)
 

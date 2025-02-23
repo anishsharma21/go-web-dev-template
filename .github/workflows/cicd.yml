@@ -54,24 +54,6 @@ jobs:
           goose status
           goose up
 
-      - name: Cache Tailwind CSS executable
-        uses: actions/cache@v3
-        with:
-          path: ./tailwindcss
-          key: ${{ runner.os }}-tailwindcss-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-tailwindcss-
-
-      - name: Install Tailwind CSS
-        if: steps.cache-tailwindcss.outputs.cache-hit != 'true'
-        run: |
-          curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v4.0.7/tailwindcss-linux-x64
-          chmod +x tailwindcss-linux-x64
-          mv tailwindcss-linux-x64 tailwindcss
-
-      - name: Build CSS
-        run: ./tailwindcss -i ./static/css/input.css -o ./static/css/output.css
-
       - name: Run Tests
         env:
           ENV: cicd
