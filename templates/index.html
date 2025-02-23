@@ -14,16 +14,10 @@
           This is a minimal template for building a web application using Golang
           + HTMX + Postgres
         </p>
-        <button
-          hx-get="/view/login"
-          hx-swap="none"
-          id="index-login-btn"
-          class="px-4 py-2 text-white transition duration-300 ease-in-out bg-black rounded cursor-pointer hover:bg-gray-700"
-        >
-          Login
-        </button>
+        {{ template "base-login" }}
       </div>
     </main>
+    <script src="/static/js/flowbite.js"></script>
   </body>
 </html>
 {{ end }}
