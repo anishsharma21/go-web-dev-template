@@ -3,3 +3,6 @@ tw:
 
 tm:
 	./tailwindcss -i static/css/input.css -o static/css/output.css --minify
+
+tp:
+	./tailwindcss -i static/css/input.css -o static/css/output.css --purge

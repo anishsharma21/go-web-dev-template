@@ -1,23 +1,31 @@
 <!-- Base HTML template -->
-
 {{ define "base-html" }}
 <!DOCTYPE html>
 <html lang="en">
   {{ template "head" }}
-  <body class="flex items-center justify-center min-h-screen bg-black">
-    <main id="index-main" class="container p-4 mx-auto">
-      <div
-        class="w-3/5 p-12 mx-auto text-center text-black bg-white rounded-lg shadow-md h-1/2 shadow-white"
-      >
-        <h1 class="mb-4 text-5xl font-bold">Go Web Dev Template</h1>
-        <p class="mb-6 text-lg">
-          This is a minimal template for building a web application using Golang
-          + HTMX + Postgres
-        </p>
-        {{ template "base-login" }}
+  <body>
+    <main id="index-main" class="bg-black">
+      <div class="flex items-center justify-center min-h-screen">
+        <div class="w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
+          <h1 class="text-4xl font-bold text-center text-black">
+            Go Web Dev Template
+          </h1>
+
+          <p class="mt-4 text-center text-black">
+            This is a minimal template for building a web application using
+            Golang + HTMX + Postgres
+          </p>
+
+          <div class="flex justify-center mt-6">
+            <button
+              class="px-6 py-2 text-white transition duration-200 bg-black rounded-md cursor-pointer hover:bg-gray-600 focus:ring-2 focus:ring-gray-500"
+            >
+              Login
+            </button>
+          </div>
+        </div>
       </div>
     </main>
-    <script src="/static/js/flowbite.js"></script>
   </body>
 </html>
 {{ end }}
