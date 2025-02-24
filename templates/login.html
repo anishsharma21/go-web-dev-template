@@ -1,0 +1,44 @@
+{{ define "base-login-view" }}
+<body class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+  <main class="flex items-center justify-center min-h-screen p-4">
+    <div
+      class="max-w-lg p-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-lg min-w-sm"
+    >
+      <h1 class="text-4xl font-bold text-center text-white">Login</h1>
+
+      <form class="mt-4">
+        <div class="mb-4">
+          <label class="block text-gray-300" for="username">Username</label>
+          <input
+            class="w-full px-4 py-2 mt-2 text-gray-900 bg-gray-200 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500"
+            type="text"
+            id="username"
+            name="username"
+            required
+          />
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-gray-300" for="password">Password</label>
+          <input
+            class="w-full px-4 py-2 mt-2 text-gray-900 bg-gray-200 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-500"
+            type="password"
+            id="password"
+            name="password"
+            required
+          />
+        </div>
+
+        <div class="flex justify-center mt-6">
+          <button
+            class="px-6 py-2 text-white transition duration-200 bg-gray-700 border border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 hover:border-gray-500 focus:ring-2 focus:ring-gray-500"
+            type="submit"
+          >
+            Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</body>
+{{ end }}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/anishsharma21/go-web-dev-template/internal/queries"
+	"github.com/anishsharma21/go-web-dev-template/internal/types/selectors"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -18,7 +19,7 @@ func RenderBaseUserView(dbPool *pgxpool.Pool, tmpl *template.Template) http.Hand
 			return
 		}
 
-		err = tmpl.ExecuteTemplate(w, "base-users-view", users)
+		err = tmpl.ExecuteTemplate(w, selectors.UsersView.UsersView, users)
 		if err != nil {
 			slog.ErrorContext(r.Context(), "Failed to execute template", "error", err, "template", "base-users-view")
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

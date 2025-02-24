@@ -181,19 +181,24 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 
 	routes := map[string]routeConfig{
 		// auth
-		"POST /signup": {
+		"POST /api/signup": {
 			Handler:      handlers.SignUp(dbPool),
 			ApplyLogging: true,
 			ApplyJWT:     false,
 		},
-		"POST /login": {
+		"POST /api/login": {
 			Handler:      handlers.Login(dbPool),
 			ApplyLogging: true,
 			ApplyJWT:     false,
 		},
-		"POST /refresh-token": {
+		"POST /api/refresh-token": {
 			Handler:      handlers.RefreshToken(),
 			ApplyLogging: false,
+			ApplyJWT:     false,
+		},
+		"GET /login": {
+			Handler:      handlers.RenderLoginView(templates),
+			ApplyLogging: true,
 			ApplyJWT:     false,
 		},
 

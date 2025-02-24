@@ -3,7 +3,10 @@
 <!DOCTYPE html>
 <html lang="en">
   {{ template "head" }}
-  <body class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
+  <body
+    hx-boost="true"
+    class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
+  >
     <main class="flex items-center justify-center min-h-screen p-4">
       <div
         class="max-w-lg p-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-lg min-w-sm"
@@ -19,9 +22,13 @@
 
         <div class="flex justify-center mt-6">
           <button
+            hx-get="/login"
+            hx-target="body"
+            hx-swap="outerHTML"
+            hx-push-url="/login"
             class="px-6 py-2 text-white transition duration-200 bg-gray-700 border border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 hover:border-gray-500 focus:ring-2 focus:ring-gray-500"
           >
-            Login
+            Start
           </button>
         </div>
       </div>

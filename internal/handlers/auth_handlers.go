@@ -12,9 +12,12 @@ import (
 	"github.com/anishsharma21/go-web-dev-template/internal/auth"
 	"github.com/anishsharma21/go-web-dev-template/internal/queries"
 	"github.com/anishsharma21/go-web-dev-template/internal/types/models"
+	"github.com/anishsharma21/go-web-dev-template/internal/types/selectors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var isProduction = os.Getenv("ENV") == "production"
 
 func Login(dbPool *pgxpool.Pool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +68,7 @@ func Login(dbPool *pgxpool.Pool) http.Handler {
 			Name:     "refresh_token",
 			Value:    refreshToken,
 			HttpOnly: true,
-			Secure:   true,
+			Secure:   isProduction,
 			SameSite: http.SameSiteStrictMode,
 			Path:     "/",
 			Expires:  time.Now().Add(24 * 7 * time.Hour),
@@ -86,8 +89,6 @@ func Login(dbPool *pgxpool.Pool) http.Handler {
 		slog.InfoContext(r.Context(), fmt.Sprintf("User logged in: %s", email))
 	})
 }
-
-var isProduction = os.Getenv("ENV") == "production"
 
 func SignUp(dbPool *pgxpool.Pool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -205,6 +206,17 @@ func RefreshToken() http.Handler {
 		err = json.NewEncoder(w).Encode(response)
 		if err != nil {
 			slog.ErrorContext(r.Context(), "Failed to encode refresh token response", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func RenderLoginView(tmpl *template.Template) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err := tmpl.ExecuteTemplate(w, selectors.LoginView.LoginView, nil)
+		if err != nil {
+			slog.Error("Failed to render login template", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
