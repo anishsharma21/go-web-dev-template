@@ -12,6 +12,10 @@
     <!---->
     {{ template "base-login-view" . }}
     <!---->
+    {{ else if .RenderSignupView }}
+    <!---->
+    {{ template "base-signup-view" . }}
+    <!---->
     {{ end }}
   </body>
 </html>

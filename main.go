@@ -201,6 +201,11 @@ func setupRoutes(dbPool *pgxpool.Pool) *http.ServeMux {
 			ApplyLogging: true,
 			ApplyJWT:     false,
 		},
+		"GET /signup": {
+			Handler:      handlers.RenderSignupView(templates),
+			ApplyLogging: true,
+			ApplyJWT:     false,
+		},
 
 		// users
 		"GET /users": {

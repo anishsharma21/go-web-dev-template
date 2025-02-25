@@ -11,6 +11,7 @@ import (
 
 	"github.com/anishsharma21/go-web-dev-template/internal/auth"
 	"github.com/anishsharma21/go-web-dev-template/internal/queries"
+	"github.com/anishsharma21/go-web-dev-template/internal/types"
 	"github.com/anishsharma21/go-web-dev-template/internal/types/models"
 	"github.com/anishsharma21/go-web-dev-template/internal/types/selectors"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -214,14 +215,32 @@ func RefreshToken() http.Handler {
 
 func RenderLoginView(tmpl *template.Template) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data := map[string]bool{
-			"RenderBaseView":  false,
-			"RenderLoginView": true,
+		data := types.BaseView{
+			RenderBaseView:   false,
+			RenderLoginView:  true,
+			RenderSignupView: false,
 		}
 
 		err := tmpl.ExecuteTemplate(w, selectors.IndexPage.IndexHtml, data)
 		if err != nil {
 			slog.Error("Failed to render login template", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	})
+}
+
+func RenderSignupView(tmpl *template.Template) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data := types.BaseView{
+			RenderBaseView:   false,
+			RenderLoginView:  false,
+			RenderSignupView: true,
+		}
+
+		err := tmpl.ExecuteTemplate(w, selectors.IndexPage.IndexHtml, data)
+		if err != nil {
+			slog.Error("Failed to render signup template", "error", err)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
