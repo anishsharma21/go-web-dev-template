@@ -10,9 +10,14 @@ import (
 
 func RenderBaseView(tmpl *template.Template) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := tmpl.ExecuteTemplate(w, selectors.IndexPage.BaseHTML, nil)
+		data := map[string]bool{
+			"RenderBaseView":  true,
+			"RenderLoginView": false,
+		}
+
+		err := tmpl.ExecuteTemplate(w, selectors.IndexPage.IndexHtml, data)
 		if err != nil {
-			slog.ErrorContext(r.Context(), "Failed to execute template", "error", err, "template", selectors.IndexPage.BaseHTML)
+			slog.ErrorContext(r.Context(), "Failed to execute template", "error", err, "template", selectors.IndexPage.IndexHtml)
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
