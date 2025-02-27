@@ -1,4 +1,5 @@
 <!-- Base HTML template -->
+
 {{ define "index-html" }}
 <!DOCTYPE html>
 <html lang="en">
@@ -39,14 +40,25 @@
 
     <div class="flex justify-center mt-6">
       <button
-        hx-get="/login"
-        hx-target="body"
-        hx-swap="outerHTML"
-        hx-push-url="/login"
+        hx-boost="true"
+        href="/login"
         class="px-6 py-2 text-white transition duration-200 bg-gray-700 border border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 hover:border-gray-500 focus:ring-2 focus:ring-gray-500"
       >
         Start
       </button>
+    </div>
+
+    <div class="flex justify-center mt-8">
+      <p class="text-gray-300">
+        Don't have an account?
+        <a
+          hx-boost="true"
+          href="/signup"
+          class="underline hover:cursor-pointer"
+        >
+          Sign up
+        </a>
+      </p>
     </div>
   </div>
 </main>

@@ -2,7 +2,7 @@
 <body class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
   <main class="flex items-center justify-center min-h-screen p-4">
     <div
-      class="max-w-lg p-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-lg min-w-sm"
+      class="p-8 bg-gray-800 border-2 border-gray-700 rounded-lg shadow-lg min-w-1/2 max-w-9/10"
     >
       <h1 class="text-4xl font-bold text-center text-white">Sign Up</h1>
 
@@ -73,6 +73,19 @@
           </button>
         </div>
       </form>
+
+      <div class="flex justify-center mt-8">
+        <p class="text-gray-300">
+          Already have an account?
+          <a
+            hx-boost="true"
+            href="/login"
+            class="underline hover:cursor-pointer"
+          >
+            Login
+          </a>
+        </p>
+      </div>
     </div>
   </main>
 </body>
