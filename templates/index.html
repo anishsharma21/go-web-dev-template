@@ -4,20 +4,26 @@
 <!DOCTYPE html>
 <html lang="en">
   {{ template "head" }}
-  <body class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900">
-    {{ if .RenderBaseView }}
-    <!---->
-    {{ template "index-body" . }}
-    <!---->
-    {{ else if .RenderLoginView }}
-    <!---->
-    {{ template "base-login-view" . }}
-    <!---->
-    {{ else if .RenderSignupView }}
-    <!---->
-    {{ template "base-signup-view" . }}
-    <!---->
-    {{ end }}
+  <body
+    class="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
+  >
+    {{ template "spinner" }}
+
+    <div id="index-content">
+      {{ if .RenderBaseView }}
+      <!---->
+      {{ template "index-body" . }}
+      <!---->
+      {{ else if .RenderLoginView }}
+      <!---->
+      {{ template "base-login-view" . }}
+      <!---->
+      {{ else if .RenderSignupView }}
+      <!---->
+      {{ template "base-signup-view" . }}
+      <!---->
+      {{ end }}
+    </div>
   </body>
 </html>
 {{ end }}
@@ -42,6 +48,7 @@
       <a
         hx-boost="true"
         href="/login"
+        hx-indicator="#spinner"
         class="px-6 py-2 text-white transition duration-200 bg-gray-700 border border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 hover:border-gray-500 focus:ring-2 focus:ring-gray-500"
       >
         Start
@@ -53,6 +60,7 @@
         Don't have an account?
         <a
           hx-boost="true"
+          hx-indicator="#spinner"
           href="/signup"
           class="underline hover:cursor-pointer"
         >
@@ -62,4 +70,26 @@
     </div>
   </div>
 </main>
+{{ end }}
+
+<!-- Spinner -->
+
+{{ define "spinner" }}
+<div
+  id="spinner"
+  class="fixed inset-0 z-50 flex items-center justify-center htmx-indicator"
+>
+  <img class="w-24 h-24" src="/static/spinner.svg" alt="Loading..." />
+</div>
+<style>
+  .htmx-indicator {
+    display: none;
+  }
+  .htmx-request.htmx-indicator {
+    display: flex;
+  }
+  .htmx-request ~ #index-content {
+    display: none;
+  }
+</style>
 {{ end }}
