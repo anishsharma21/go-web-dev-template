@@ -7,7 +7,7 @@
   <body
     class="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900"
   >
-    {{ template "spinner" }}
+    {{ template "index-spinner" }}
 
     <div id="index-content">
       {{ if .RenderBaseView }}
@@ -48,7 +48,7 @@
       <a
         hx-boost="true"
         href="/login"
-        hx-indicator="#spinner"
+        hx-indicator="#index-spinner"
         class="px-6 py-2 text-white transition duration-200 bg-gray-700 border border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 hover:border-gray-500 focus:ring-2 focus:ring-gray-500"
       >
         Start
@@ -60,7 +60,7 @@
         Don't have an account?
         <a
           hx-boost="true"
-          hx-indicator="#spinner"
+          hx-indicator="#index-spinner"
           href="/signup"
           class="underline hover:cursor-pointer"
         >
@@ -74,9 +74,9 @@
 
 <!-- Spinner -->
 
-{{ define "spinner" }}
+{{ define "index-spinner" }}
 <div
-  id="spinner"
+  id="index-spinner"
   class="fixed inset-0 z-50 flex items-center justify-center htmx-indicator"
 >
   <img class="w-24 h-24" src="/static/spinner.svg" alt="Loading..." />
